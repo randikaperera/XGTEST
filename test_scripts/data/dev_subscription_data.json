@@ -1,0 +1,65 @@
+[
+	{	"scenario" : "Success : subscribe",
+		"method_name" : "subscribe"	,				
+		"account_id":"85561554834",
+		"reqPLAN": "XG150",
+		"channel": "USSD.168",
+		"error_code": "0000",
+        "error_message": "You have successfully subscribed to XG1.5. Your bundle is valid"
+		
+	},
+	{	"scenario" : "Error : subscribe : Number not eligible",
+		"method_name" : "subscribe"	,				
+		"account_id":"85512200310",
+		"reqPLAN": "XG150",
+		"channel": "USSD.168",
+		"error_code": "001",
+        "error_message": "Sorry, this number is not eligible for this service. Please call 812 for assistance."
+		
+	},
+	{	"scenario" : "Error : subscribe :  Profile inactive",
+		"method_name" : "subscribe"	,				
+		"account_id":"85561547675",
+		"reqPLAN": "XG150",
+		"channel": "USSD.168",
+		"error_code": "003",
+        "error_message": "Sorry, your profile is inactive, please top-up and try it again. More info, please call 812 for assistance."
+		
+	},
+	{	"scenario" : "Error : subscribe :  004 block 30days",
+		"method_name" : "subscribe"	,				
+		"account_id":"85561546105",
+		"reqPLAN": "XG150",
+		"channel": "USSD.168",
+		"error_code": "004",
+        "error_message": "Migration to Cellcard XG can be done after you complete 31 days on the Cellcard network"
+		
+	},
+	{	"scenario" : "Error : subscribe :  OCS error",
+		"method_name" : "subscribe"	,				
+		"account_id":"85561554834",
+		"reqPLAN": "XG150",
+		"channel": "USSD.168",
+		"error_code": "005",
+        "error_message": "null"
+		
+	},
+	{	"scenario" : "Success : OFF Subscription :  OFF Subscription",
+		"method_name" : "OFF Subscription"	,				
+		"account_id":"85561547675",
+		"reqPLAN": "OS_X_10",
+		"channel": "USSD.168",
+		"error_code": "0000",
+        "error_message": "Your request to stop XG auto renewal is successful. You can use the remaining bundle until it expires. If you wish to subscribe again, dial #8282#."
+		
+	},
+	{	"scenario" : "Error : OFF Subscription :  Inavlid Request",
+		"method_name" : "OFF Subscription"	,				
+		"account_id":"85561546138",
+		"reqPLAN": "OS_X_10",
+		"channel": "USSD.168",
+		"error_code": "020",
+        "error_message": "Your request to stop XG auto renewal is invalid"
+		
+	}
+]

@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="UTF-8"?><resource name="XG_Config.xml" isCollection="false" path="/_system/governance/VASApp/XG/localEntry/XGRegistry/XG_Config.xml" registryUrl="https://localhost:9443/registry" status="added">
+    <mediaType>application/vnd.wso2.esb.localentry</mediaType>
+</resource>

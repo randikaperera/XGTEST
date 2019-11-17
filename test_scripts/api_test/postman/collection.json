@@ -1,0 +1,119 @@
+{
+	"info": {
+		"_postman_id": "3cd3e86c-34f9-4700-9ff1-0444a6031f18",
+		"name": "VASApp - XG",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "/services/v1/VASApp : XG Subscription",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "aaddea72-e81d-4b98-9848-b3378d747d03",
+						"exec": [
+							"// Scenario specific data is extracted from a data file",
+							"",
+							"var test_name = \" [ \" + data.scenario + \" ] \";",
+							"",
+							"pm.test(test_name + \"Response status code is 200 \", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(test_name + \"Response error_code is \"+ data.error_code, function () {",
+							"",
+							"     pm.expect(pm.response.json().RetrieveResponse.error_code).to.equal(data.error_code);",
+							"",
+							"});",
+							"",
+							"pm.test(test_name + \"Response error_message is \"+ data.error_message.toString(), function () {",
+							"",
+							"     pm.expect(pm.response.json().RetrieveResponse.error_message).to.contain(data.error_message.toString());",
+							"",
+							"});",
+							"",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "02ef2cee-9ca0-4308-af22-e44b039cfedd",
+						"exec": [
+							"var CryptoJS = require(\"crypto-js\")",
+							"var basicToken = pm.environment.get(\"username\")+\":\"+pm.environment.get(\"password\")",
+							"var rawStr = CryptoJS.enc.Utf8.parse(basicToken)",
+							"var base64 = CryptoJS.enc.Base64.stringify(rawStr)",
+							"",
+							"pm.environment.set (\"basicToken\", base64)",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Basic {{basicToken}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"Retrieve\": {\r\n    \"account_id\": \"{{account_id}}\",\r\n    \"Product\": \"XG\",\r\n    \"method_name\": \"{{method_name}}\",\r\n    \"reqPLAN\": \"{{reqPLAN}}\",\r\n    \"channel\": \"{{channel}}\",\r\n    \"reqID\": \"{{$guid}}\"\r\n  }\r\n}\r\n"
+				},
+				"url": {
+					"raw": "{{hostName}}/services/v1/VASApp",
+					"host": [
+						"{{hostName}}"
+					],
+					"path": [
+						"services",
+						"v1",
+						"VASApp"
+					]
+				},
+				"description": "{\r\n  \"Retrieve\": {\r\n    \"account_id\": \"85512200310\",\r\n    \"Product\": \"IknowIknow\",\r\n    \"method_name\": \"subscribe\",\r\n    \"reqPLAN\": \"OS_X_10NA\",\r\n    \"channel\": \"USSD.168\",\r\n    \"reqID\": \"121212\"\r\n  }\r\n}"
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "f01f1ef2-aec5-41ab-8a24-e8d637bf37dc",
+				"type": "text/javascript",
+				"exec": [
+					"var CryptoJS = require(\"crypto-js\");",
+					"var basicToken = pm.environment.get(\"username\")+\":\"+pm.environment.get(\"password\")",
+					"",
+					"var rawStr = CryptoJS.enc.Utf8.parse(basicToken)",
+					"var base64 = CryptoJS.enc.Base64.stringify(rawStr)",
+					"",
+					"pm.environment.set (\"basicToken\", base64)"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "9354546f-7308-42bf-a319-d83a8d1a64e3",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"protocolProfileBehavior": {}
+}

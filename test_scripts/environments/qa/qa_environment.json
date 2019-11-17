@@ -1,0 +1,44 @@
+{
+	"id": "90d8f60d-65b0-489b-83fc-01aa3eed5bb0",
+	"name": "QA",
+	"values": [
+		{
+			"key": "username",
+			"value": "admin",
+			"description": {
+				"content": "",
+				"type": "text/plain"
+			},
+			"enabled": true
+		},
+		{
+			"key": "password",
+			"value": "admin",
+			"description": {
+				"content": "",
+				"type": "text/plain"
+			},
+			"enabled": true
+		},
+		{
+			"key": "basicToken",
+			"value": "YWRtaW46YWRtaW4=",
+			"enabled": true
+		},
+		{
+			"key": "hostName",
+			"value": "https://api3.cellcard.com.kh:8244",
+			"description": "",
+			"enabled": true
+		},
+		{
+			"key": "accountId",
+			"value": "61554834",
+			"description": "",
+			"enabled": true
+		}
+	],
+	"_postman_variable_scope": "environment",
+	"_postman_exported_at": "2019-10-17T04:09:42.787Z",
+	"_postman_exported_using": "Postman/6.7.5"
+}

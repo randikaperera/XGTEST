@@ -1,0 +1,49 @@
+pipeline {
+    agent any 
+    options {
+        ansiColor('xterm')
+    }
+    environment {
+        MAVEN_OPTS = '-Djansi.force=true'
+        ARTIFACTORY_URL = 'http://172.16.101.15:8081/artifactory/'
+        
+    }
+    stages {
+        stage('Build') { 
+            steps {
+                dir("/home/jenkins/ssl/wso2/ei/keystore/dev") {
+                    fileOperations([fileCopyOperation(excludes: '', flattenFiles: true, includes: 'wso2carbon.jks', targetLocation: "${WORKSPACE}")])
+                }
+                sh './gradlew buildWSO2 --stacktrace'
+            }
+        }
+        
+        stage('Deploy') {
+            environment {
+                EI_SERVER_HOST = "https://172.16.100.24:9443"
+            }
+            steps {
+                withCredentials([steps.usernamePassword(
+                credentialsId: 'QA_EI_SERVER',
+                usernameVariable: 'USERNAME',
+                passwordVariable: 'PASSWORD')]){
+
+                    sh './gradlew deployRemote'
+                }
+            }
+        }
+       /* stage('Test') { 
+            steps {
+                sleep(45)
+				sh './gradlew testWSO2'
+            }
+        } */    
+        stage('Deploy snapshot') { 
+            steps {
+                withCredentials([steps.usernamePassword(credentialsId: 'ARTIFACTORY', usernameVariable: 'JFROG_USERNAME', passwordVariable: 'JFROG_PASSWORD')]) {
+                    sh './gradlew deployToArtifactory'
+                }
+            }
+        }
+    }
+}

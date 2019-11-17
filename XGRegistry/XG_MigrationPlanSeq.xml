@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sequence name="XG_MigrationPlanSeq" trace="disable" xmlns="http://ws.apache.org/ns/synapse">
+  <filter regex="yes" source="$ctx:status">
+    <then>
+      <payloadFactory media-type="xml">
+        <format>
+          <SubmitRequest xmlns="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0">
+            <SessionInfo>
+              <sessionId>1</sessionId>
+            </SessionInfo>
+            <RequestInfo>
+              <ReqID>$1</ReqID>
+            </RequestInfo>
+            <NERoutingInfo>
+              <NeName/>
+              <NeGroupName/>
+              <DistributionKey/>
+            </NERoutingInfo>
+            <ParamList/>
+            <TaskList>
+              <Task>
+                <Name>Change Class Of Service</Name>
+                <ParamList>
+                  <Param>
+                    <Name>Account ID</Name>
+                    <Value>$2</Value>
+                  </Param>
+                  <Param>
+                    <Name>Class of Service ID</Name>
+                    <Value>CS_DEFAULT</Value>
+                  </Param>
+                </ParamList>
+              </Task>
+            </TaskList>
+          </SubmitRequest>
+        </format>
+        <args>
+          <arg evaluator="xml" expression="get-property('Timestamp')"/>
+          <arg evaluator="xml" expression="get-property('account_id')"/>
+        </args>
+      </payloadFactory>
+      <property name="Step" scope="default" type="STRING" value="9999"/>
+      <property name="Nei" scope="default" type="STRING" value="SurePay"/>
+      <property name="Api" scope="default" type="STRING" value="ChangeClassOfService"/>
+      <property name="Action" scope="default" type="STRING" value="Request"/>
+      <sequence key="Tools_LogFormatterSeq"/>
+      <sequence key="NE_SurePayHandlerSeq"/>
+      <property description="Result"
+        expression="//p:TaskResponse/p:Result/text()" name="Result"
+        scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+      <property description="Name"
+        expression="//p:TaskResponse/p:Name/text()" name="Name"
+        scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+      <property description="ErrorCode"
+        expression="//p:ErrorInfo/p:ErrorCode/text()" name="ErrorCode"
+        scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+      <property description="ErrorMsg"
+        expression="//p:ErrorInfo/p:ErrorMsg/text()" name="ErrorMsg"
+        scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+      <property name="Step" scope="default" type="STRING" value="9999"/>
+      <property name="Nei" scope="default" type="STRING" value="SurePay"/>
+      <property name="Api" scope="default" type="STRING" value="ChangeClassOfService"/>
+      <property name="Action" scope="default" type="STRING" value="Response"/>
+      <sequence key="Tools_LogFormatterSeq"/>
+      <payloadFactory media-type="xml">
+        <format>
+          <SubmitRequest xmlns="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0">
+            <SessionInfo>
+              <sessionId>1</sessionId>
+            </SessionInfo>
+            <RequestInfo>
+              <ReqID>$1</ReqID>
+            </RequestInfo>
+            <NERoutingInfo>
+              <NeName/>
+              <NeGroupName/>
+              <DistributionKey/>
+            </NERoutingInfo>
+            <TaskList>
+              <Task>
+                <Name>Adjust Balance</Name>
+                <ParamList>
+                  <Param>
+                    <Name>Account ID</Name>
+                    <Value>$2</Value>
+                  </Param>
+                  <Param>
+                    <Name>Account Type</Name>
+                    <Value>Subscriber</Value>
+                  </Param>
+                  <Param>
+                    <Name>Amount</Name>
+                    <Value>0.00075</Value>
+                  </Param>
+                  <Param>
+                    <Name>Balance</Name>
+                    <Value>Primary</Value>
+                  </Param>
+                  <Param>
+                    <Name>Method</Name>
+                    <Value>INCR</Value>
+                  </Param>
+                  <Param>
+                    <Name>Generate AMA</Name>
+                    <Value>Y</Value>
+                  </Param>
+                  <Param>
+                    <Name>Recharge</Name>
+                    <Value>Y</Value>
+                  </Param>
+                  <Param>
+                    <Name>Credit Validity Delta</Name>
+                    <Value>0</Value>
+                  </Param>
+                </ParamList>
+              </Task>
+            </TaskList>
+          </SubmitRequest>
+        </format>
+        <args>
+          <arg evaluator="xml" expression="get-property('Timestamp')"/>
+          <arg evaluator="xml" expression="get-property('account_id')"/>
+        </args>
+      </payloadFactory>
+      <property name="Step" scope="default" type="STRING" value="9999"/>
+      <property name="Nei" scope="default" type="STRING" value="SurePay"/>
+      <property name="Api" scope="default" type="STRING" value="AdjustBalance-dg"/>
+      <property name="Action" scope="default" type="STRING" value="Request"/>
+      <sequence key="Tools_LogFormatterSeq"/>
+      <sequence key="NE_SurePayHandlerSeq"/>
+      <property description="Result"
+        expression="//p:TaskResponse/p:Result/text()" name="Result"
+        scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+      <property description="Name"
+        expression="//p:TaskResponse/p:Name/text()" name="Name"
+        scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+      <property description="ErrorCode"
+        expression="//p:ErrorInfo/p:ErrorCode/text()" name="ErrorCode"
+        scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+      <property description="ErrorMsg"
+        expression="//p:ErrorInfo/p:ErrorMsg/text()" name="ErrorMsg"
+        scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+      <property name="Step" scope="default" type="STRING" value="9999"/>
+      <property name="Nei" scope="default" type="STRING" value="SurePay"/>
+      <property name="Api" scope="default" type="STRING" value="AdjustBalance-dg"/>
+      <property name="Action" scope="default" type="STRING" value="Response"/>
+      <sequence key="Tools_LogFormatterSeq"/>
+    </then>
+    <else/>
+  </filter>
+  <payloadFactory media-type="xml">
+    <format>
+      <SubmitRequest xmlns="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0">
+        <SessionInfo>
+          <sessionId>1</sessionId>
+        </SessionInfo>
+        <RequestInfo>
+          <ReqID>$1</ReqID>
+        </RequestInfo>
+        <NERoutingInfo>
+          <NeName/>
+          <NeGroupName/>
+          <DistributionKey/>
+        </NERoutingInfo>
+        <TaskList>
+          <Task>
+            <Name>Adjust Balance</Name>
+            <ParamList>
+              <Param>
+                <Name>Account ID</Name>
+                <Value>$2</Value>
+              </Param>
+              <Param>
+                <Name>Account Type</Name>
+                <Value>Subscriber</Value>
+              </Param>
+              <Param>
+                <Name>Amount</Name>
+                <Value>$3</Value>
+              </Param>
+              <Param>
+                <Name>Balance</Name>
+                <Value>Primary</Value>
+              </Param>
+              <Param>
+                <Name>Method</Name>
+                <Value>INCR</Value>
+              </Param>
+              <Param>
+                <Name>Generate AMA</Name>
+                <Value>Y</Value>
+              </Param>
+              <Param>
+                <Name>Recharge</Name>
+                <Value>Y</Value>
+              </Param>
+              <Param>
+                <Name>Credit Validity Delta</Name>
+                <Value>0</Value>
+              </Param>
+            </ParamList>
+          </Task>
+        </TaskList>
+      </SubmitRequest>
+    </format>
+    <args>
+      <arg evaluator="xml" expression="get-property('Timestamp')"/>
+      <arg evaluator="xml" expression="get-property('account_id')"/>
+      <arg value="0.0007"/>
+    </args>
+  </payloadFactory>
+  <property name="Step" scope="default" type="STRING" value="9999"/>
+  <property name="Nei" scope="default" type="STRING" value="SurePay"/>
+  <property name="Api" scope="default" type="STRING" value="AdjustBalance-dg"/>
+  <property name="Action" scope="default" type="STRING" value="Request"/>
+  <sequence key="Tools_LogFormatterSeq"/>
+  <sequence key="NE_SurePayHandlerSeq"/>
+  <property description="Result"
+    expression="//p:TaskResponse/p:Result/text()" name="Result"
+    scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <property description="Name"
+    expression="//p:TaskResponse/p:Name/text()" name="Name"
+    scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <property description="ErrorCode"
+    expression="//p:ErrorInfo/p:ErrorCode/text()" name="ErrorCode"
+    scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <property description="ErrorMsg"
+    expression="//p:ErrorInfo/p:ErrorMsg/text()" name="ErrorMsg"
+    scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <property name="Step" scope="default" type="STRING" value="9999"/>
+  <property name="Nei" scope="default" type="STRING" value="SurePay"/>
+  <property name="Api" scope="default" type="STRING" value="AdjustBalance-dg"/>
+  <property name="Action" scope="default" type="STRING" value="Response"/>
+  <sequence key="Tools_LogFormatterSeq"/>
+  <dbreport>
+    <connection>
+      <pool>
+        <dsName>jdbc/OracleDB</dsName>
+      </pool>
+    </connection>
+    <statement>
+      <sql><![CDATA[delete sp_osja_singup where '855'||msisdn = ?]]></sql>
+      <parameter expression="get-property('account_id')" type="VARCHAR"/>
+    </statement>
+  </dbreport>
+</sequence>

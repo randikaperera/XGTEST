@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sequence name="XG_GetNotificationSeq" trace="disable" xmlns="http://ws.apache.org/ns/synapse">
+    <property expression="$ctx:resultOM1//plan[name/text()=$ctx:Bundle_ID]/originator/text()" name="originator" scope="default" type="STRING"/>
+    <property expression="$ctx:resultOM1//plan[name/text()=$ctx:Bundle_ID]/notification[code/text()=$ctx:code]/message/text()" name="message" scope="default" type="STRING"/>
+    <property expression="$ctx:resultOM1//plan[name/text()=$ctx:Bundle_ID]/notification[code/text()=$ctx:code]/description/text()" name="description" scope="default" type="STRING"/>
+</sequence>

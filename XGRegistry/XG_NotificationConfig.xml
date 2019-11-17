@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<localEntry key="XG_NotificationConfig" xmlns="http://ws.apache.org/ns/synapse">
+    <root xmlns="">
+        <plan>
+            <name>XG150</name>
+            <originator>Cellcard</originator>
+            <notification>
+                <code>001</code>
+                <message>Sorry, this number is not eligible for this service. Please call 812 for assistance.</message>
+                <description>not allow</description>
+            </notification>
+            <notification>
+                <code>002</code>
+                <message>Your plan is not valid for this migration</message>
+                <description>not eligible to migration</description>
+            </notification>
+            <notification>
+                <code>003</code>
+                <message>Sorry, your profile is inactive, please top-up and try it again. More info, please call 812 for assistance.</message>
+                <description>not yet activate account</description>
+            </notification>
+            <notification>
+                <code>004</code>
+                <message>Migration to Cellcard XG can be done after you complete 31 days on the Cellcard network.</message>
+                <description>system error</description>
+            </notification>
+            <notification>
+                <code>007</code>
+                <message>You have successfully subscribed to XG1.5. Your bundle is valid until %validity%. To check your balance dial #823#.</message>
+                <description>success activate</description>
+            </notification>
+        </plan>
+        <plan>
+            <name>XG300</name>
+            <originator>Cellcard</originator>
+            <notification>
+                <code>001</code>
+                <message>Sorry, this number is not eligible for this service. Please call 812 for assistance.</message>
+                <description>not allow</description>
+            </notification>
+            <notification>
+                <code>002</code>
+                <message>Your plan is not valid for this migration</message>
+                <description>not eligible to migration</description>
+            </notification>
+            <notification>
+                <code>003</code>
+                <message>Sorry, your profile is inactive, please top-up and try it again. More info, please call 812 for assistance.</message>
+                <description>not yet activate account</description>
+            </notification>
+            <notification>
+                <code>004</code>
+                <message>Migration to Cellcard XG can be done after you complete 31 days on the Cellcard network.</message>
+                <description>system error</description>
+            </notification>
+            <notification>
+                <code>007</code>
+                <message>You have successfully subscribed to XG3. Your bundle is valid until %validity%. To check your balance dial #823#.</message>
+                <description>success activate</description>
+            </notification>
+        </plan>
+        <plan>
+            <name>XG450</name>
+            <originator>Cellcard</originator>
+            <notification>
+                <code>001</code>
+                <message>Sorry, this number is not eligible for this service. Please call 812 for assistance.</message>
+                <description>not allow</description>
+            </notification>
+            <notification>
+                <code>002</code>
+                <message>Your plan is not valid for this migration</message>
+                <description>not eligible to migration</description>
+            </notification>
+            <notification>
+                <code>003</code>
+                <message>Sorry, your profile is inactive, please top-up and try it again. More info, please call 812 for assistance.</message>
+                <description>not yet activate account</description>
+            </notification>
+            <notification>
+                <code>004</code>
+                <message>Migration to Cellcard XG can be done after you complete 31 days on the Cellcard network.</message>
+                <description>system error</description>
+            </notification>
+            <notification>
+                <code>007</code>
+                <message>You have successfully subscribed to XG4.5. Your bundle is valid until %validity%. To check your balance dial #823#.</message>
+                <description>success activate</description>
+            </notification>
+        </plan>
+        <plan>
+            <name>XG600</name>
+            <originator>Cellcard</originator>
+            <notification>
+                <code>001</code>
+                <message>Sorry, this number is not eligible for this service. Please call 812 for assistance.</message>
+                <description>not allow</description>
+            </notification>
+            <notification>
+                <code>002</code>
+                <message>Your plan is not valid for this migration</message>
+                <description>not eligible to migration</description>
+            </notification>
+            <notification>
+                <code>003</code>
+                <message>Sorry, your profile is inactive, please top-up and try it again. More info, please call 812 for assistance.</message>
+                <description>not yet activate account</description>
+            </notification>
+            <notification>
+                <code>004</code>
+                <message>Migration to Cellcard XG can be done after you complete 31 days on the Cellcard network.</message>
+                <description>system error</description>
+            </notification>
+            <notification>
+                <code>007</code>
+                <message>You have successfully subscribed to XG6. Your bundle is valid until %validity%. To check your balance dial #823#.</message>
+                <description>success activate</description>
+            </notification>
+        </plan>
+    </root>
+</localEntry>

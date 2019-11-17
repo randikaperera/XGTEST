@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<localEntry key="XG_Config" xmlns="http://ws.apache.org/ns/synapse">
+    <root xmlns="">
+        <ClassofServiceID>
+            <Name>CS_DEFAULT</Name>
+            <type>prepaid</type>
+            <profile>RegularPlus</profile>
+            <status>already</status>
+        </ClassofServiceID>
+        <ClassofServiceID>
+            <Action>Niyeay_RegularPlus</Action>
+            <Name>CS_NIYEAY</Name>
+            <type>prepaid</type>
+            <profile>Niyeay</profile>
+            <status>yes</status>
+        </ClassofServiceID>
+        <ClassofServiceID>
+            <Action>Chinese-RegularPlus</Action>
+            <Name>CS_CHINESE</Name>
+            <status>yes</status>
+            <blockdate>30</blockdate>
+        </ClassofServiceID>
+    </root>
+</localEntry>

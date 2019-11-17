@@ -1,0 +1,42 @@
+def version = "${RELEASE_TAG}"
+def projectName = 'XGCapp'
+def groupId = 'www/cellcard/com/kh/XGCapp'
+def artifactName =''
+pipeline {
+    agent {label 'slave01'}
+    options {
+        ansiColor('xterm')
+    }
+    environment {
+        MAVEN_OPTS = '-Djansi.force=true'
+        ARTIFACTORY_URL = 'http://172.16.101.15:8081/artifactory/'
+        
+    }
+    
+    stages {
+        stage('Undeploy artifacts') {
+            steps {
+                step([$class: 'WsCleanup'])
+                sh 'rm -f ../../../nfs/prod/ei/carbonapps/'+projectName+'-*'
+            }
+        }
+
+        stage('Download & deploy artifacts') {
+            environment {
+                ARTIFACTORY_HOST = "http://172.16.101.15:8081"
+            }
+            steps {
+                withCredentials([steps.usernamePassword(
+                credentialsId: 'ARTIFACTORY',
+                usernameVariable: 'JFROG_USERNAME',
+                passwordVariable: 'JFROG_PASSWORD')]) {
+                    script {                        
+                        artifactName = projectName+'-'+version+'.car'
+                    }
+                    sh 'curl -u ${JFROG_USERNAME}:${JFROG_PASSWORD} ${ARTIFACTORY_HOST}/artifactory/cellcard-middleware-releases/'+groupId+'/'+projectName+'/'+version+'/'+artifactName+' -o ../../../nfs/prod/ei/carbonapps/'+artifactName
+                }
+                 
+            }
+        }
+    }
+}

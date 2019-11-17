@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?><artifacts>
+    <artifact name="XG_HandlerSeq" groupId="www.cellcard.com.kh.XGConfig.sequence" version="1.0.0" type="synapse/sequence" serverRole="EnterpriseServiceBus">
+        <file>src/main/synapse-config/sequences/XG_HandlerSeq.xml</file>
+    </artifact>
+    <artifact name="XG_SubscribeSeq" groupId="www.cellcard.com.kh.XGConfig.sequence" version="1.0.0" type="synapse/sequence" serverRole="EnterpriseServiceBus">
+        <file>src/main/synapse-config/sequences/XG_SubscribeSeq.xml</file>
+    </artifact>
+    <artifact name="XG_MigrationPlanTpl" groupId="www.cellcard.com.kh.XGConfig.template" version="1.0.0" type="synapse/sequenceTemplate" serverRole="EnterpriseServiceBus">
+        <file>src/main/synapse-config/templates/XG_MigrationPlanTpl.xml</file>
+    </artifact>
+    <artifact name="XG_OffSubscriptionSeq" groupId="www.cellcard.com.kh.XGConfig.sequence" version="1.0.0" type="synapse/sequence" serverRole="EnterpriseServiceBus">
+        <file>src/main/synapse-config/sequences/XG_OffSubscriptionSeq.xml</file>
+    </artifact>
+</artifacts>

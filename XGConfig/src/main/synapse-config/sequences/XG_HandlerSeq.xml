@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sequence name="XG_HandlerSeq" trace="disable" xmlns="http://ws.apache.org/ns/synapse">
+  <property name="Step" scope="default" type="STRING" value="0"/>
+  <property name="Action" scope="default" type="STRING" value="Start"/>
+  <sequence key="Tools_LogFormatterSeq"/>
+  <sequence key="Tools_VerifyAccountIdFormatSeq"/>
+  <switch source="get-property('method_name')">
+    <case regex="subscribe">
+      <sequence key="Tools_GetPlanConfigSeq"/>
+      <sequence key="gov:VASApp/XG/sequences/XG_SubscribeSeq.xml"/>
+    </case>
+    <case regex="OFF Subscription">
+      <sequence key="gov:VASApp/XG/sequences/XG_OFFSubscriptionSeq.xml"/>
+    </case>
+    <default>
+      <sequence key="Tools_FaultMethodNameSeq"/>
+    </default>
+  </switch>
+</sequence>

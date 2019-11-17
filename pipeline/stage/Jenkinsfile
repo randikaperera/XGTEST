@@ -1,0 +1,93 @@
+def version = ''
+def projectName = 'XGCapp'
+def groupId = 'www/cellcard/com/kh/XGCapp'
+def artifactName =''
+pipeline {
+    agent any 
+    options {
+        ansiColor('xterm')
+    }
+    environment {
+        MAVEN_OPTS = '-Djansi.force=true'
+        ARTIFACTORY_URL = 'http://172.16.101.15:8081/artifactory/'
+        
+    }
+    stages {
+        stage('Git') {
+            steps {
+                step([$class: 'WsCleanup'])
+                checkout scm
+            }
+        }
+         stage('Build') {
+            steps {
+                withCredentials([steps.usernamePassword(
+                credentialsId: 'BitbucketUser',
+                usernameVariable: 'GIT_USERNAME',
+                passwordVariable: 'GIT_PASSWORD')]){ 
+                    sh './gradlew buildWSO2'
+                }
+            }
+        }
+		stage('Release') {
+            steps {
+                withCredentials([steps.usernamePassword(
+                credentialsId: 'BitbucketUser',
+                usernameVariable: 'GIT_USERNAME',
+                passwordVariable: 'GIT_PASSWORD')])
+                { 
+                    sh './gradlew releaseVersion'
+                }
+            }
+        }
+        stage('Checkout release') {
+            steps {
+                script{
+                    version = sh(script: 'git describe --abbrev=0', returnStdout: true)
+                    sh 'git checkout tags/'+version
+                    version = version.trim()
+                }
+            }
+        }
+
+        stage('Upload to artifactory') {
+            steps {
+                withCredentials([steps.usernamePassword(
+                    credentialsId: 'ARTIFACTORY',
+                    usernameVariable: 'JFROG_USERNAME',
+                    passwordVariable: 'JFROG_PASSWORD')]) {
+                    sh './gradlew deployToArtifactory'
+                    sleep(10)
+                }
+            }
+        }
+
+        stage('Undeploy artifacts') {
+            steps {
+                sh 'rm -f ../../../nfs/stage/ei/carbonapps/'+projectName+'-*'
+                sleep(10)
+            }
+        }
+
+        stage('Download & deploy artifacts') {
+            environment {
+                ARTIFACTORY_HOST = "http://172.16.101.15:8081"
+            }
+            steps {
+                withCredentials([steps.usernamePassword(
+                credentialsId: 'ARTIFACTORY',
+                usernameVariable: 'JFROG_USERNAME',
+                passwordVariable: 'JFROG_PASSWORD')]) {
+                    script {                        
+                        artifactName = projectName+'-'+version+'.car'
+                    }
+                    sh 'curl -u ${JFROG_USERNAME}:${JFROG_PASSWORD} ${ARTIFACTORY_HOST}/artifactory/cellcard-middleware-releases/'+groupId+'/'+projectName+'/'+version+'/'+artifactName+' -o ../../../nfs/stage/ei/carbonapps/'+artifactName
+                sleep(15)
+                }
+                 
+            }
+        }
+        //TODO: Cleanup the workpsace
+
+    }
+}

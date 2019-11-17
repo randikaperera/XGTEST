@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sequence name="XG_RespondSeq" trace="disable" xmlns="http://ws.apache.org/ns/synapse">
+  <payloadFactory media-type="xml">
+    <format>
+      <RetrieveResponse>
+        <error_code>$1</error_code>
+        <error_message>$2</error_message>
+        <transaction_id>$3</transaction_id>
+      </RetrieveResponse>
+    </format>
+    <args>
+      <arg evaluator="xml" expression="get-property('code')"/>
+      <arg evaluator="xml" expression="get-property('message')"/>
+      <arg evaluator="xml" expression="get-property('uuid')"/>
+    </args>
+  </payloadFactory>
+  <property description="HTTP_SC" name="HTTP_SC" scope="axis2"
+    type="STRING" value="200"/>
+  <property description="RESPONSE" name="RESPONSE" scope="axis2"
+    type="STRING" value="true"/>
+  <header action="remove" name="To" scope="default"/>
+  <property name="messageType" scope="axis2" type="STRING" value="application/json"/>
+  <respond/>
+</sequence>

@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sequence name="XG_SubscribeSeq" trace="disable" xmlns="http://ws.apache.org/ns/synapse">
+  <property
+    expression="fn:concat($ctx:ServiceID,$ctx:UserID,'0000000000',fn:substring(get-property('SYSTEM_TIME'),8))"
+    name="TransactionID" scope="default" type="STRING"/>
+  <property name="Step" scope="default" type="STRING" value="1"/>
+  <property name="Nei" scope="default" type="STRING" value="SurePay"/>
+  <property name="Api" scope="default" type="STRING" value="AdjustBalance"/>
+  <property name="Action" scope="default" type="STRING" value="Request"/>
+  <sequence key="Tools_LogFormatterSeq"/>
+  <call-template description="VAS_SurePay_AdjustBundleTpl" target="VAS_SurePay_AdjustBundleTpl">
+    <with-param name="AccountID" value="{$ctx:account_id}"/>
+    <with-param name="AccountType" value="Subscriber"/>
+    <with-param name="RequestID" value="{$ctx:reqID}"/>
+    <with-param name="Amount" value="{$ctx:Subscription_ID}"/>
+    <with-param name="Balance" value="Primary"/>
+    <with-param name="Method" value="INCR"/>
+    <with-param name="CreditValidityDelta" value="0"/>
+    <with-param name="GenerateAMA" value="Y"/>
+    <with-param name="Recharge" value="Y"/>
+    <with-param name="UCL" value="Y"/>
+    <with-param name="NegativeCredit" value="Y"/>
+    <with-param name="TransactionID" value="{$ctx:TransactionID}"/>
+  </call-template>
+  <property description="Result"
+    expression="//p:TaskResponse/p:Result/text()" name="Result"
+    scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <property description="Name"
+    expression="//p:TaskResponse/p:Name/text()" name="Name"
+    scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <property description="ErrorCode"
+    expression="//p:ErrorInfo/p:ErrorCode/text()" name="ErrorCode"
+    scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <property description="ErrorMsg"
+    expression="//p:ErrorInfo/p:ErrorMsg/text()" name="ErrorMsg"
+    scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <property name="Step" scope="default" type="STRING" value="1"/>
+  <property name="Nei" scope="default" type="STRING" value="SurePay"/>
+  <property name="Api" scope="default" type="STRING" value="AdjustBalance"/>
+  <property name="Action" scope="default" type="STRING" value="Response"/>
+  <sequence key="Tools_LogFormatterSeq"/>
+  <filter regex="SUCCESS" source="get-property('Result')">
+    <then/>
+    <else>
+      <property description="error_code" name="error_code"
+        scope="default" type="STRING" value="1005"/>
+      <property description="error_message" name="error_message"
+        scope="default" type="STRING" value="system error"/>
+      <property description="description"
+        expression="get-property('ErrorMsg')" name="description"
+        scope="default" type="STRING"/>
+      <property expression="get-property('uuid')" name="transaction_id"
+        scope="default" type="STRING"/>
+      <sequence key="Tools_GetResponseFormateSeq"/>
+    </else>
+  </filter>
+  <!-- Call API Query Bundle check Auto Subscription-->
+  <property name="Step" scope="default" type="STRING" value="2"/>
+  <property name="Nei" scope="default" type="STRING" value="SurePay"/>
+  <property name="Api" scope="default" type="STRING" value="QueryBundle"/>
+  <property name="Action" scope="default" type="STRING" value="Request"/>
+  <sequence key="Tools_LogFormatterSeq"/>
+  <call-template description="VAS_SurePay_QueryBundleTpl" target="VAS_SurePay_QueryBundleTpl">
+    <with-param name="AccountID" value="{$ctx:account_id}"/>
+    <with-param name="AccountType" value="Subscriber"/>
+    <with-param name="RequestID" value="{$ctx:reqID}"/>
+  </call-template>
+  <property description="Result"
+    expression="//p:TaskResponse/p:Result/text()" name="Result"
+    scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <property description="Name"
+    expression="//p:TaskResponse/p:Name/text()" name="Name"
+    scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <property description="ErrorCode"
+    expression="//p:ErrorInfo/p:ErrorCode/text()" name="ErrorCode"
+    scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <property description="ErrorMsg"
+    expression="//p:ErrorInfo/p:ErrorMsg/text()" name="ErrorMsg"
+    scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <xslt key="conf:/XGAutoSubscription.xslt">
+    <resource key="conf:/XGAutoSubscription.xslt" location="XGAutoSubscription.xslt"/>
+  </xslt>
+  <property expression="//p:ParamList/p:Param[1]/p:Value/text()"
+    name="OldBundleID" scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <property expression="//p:ParamList/p:Param[2]/p:Value/text()"
+    name="OldBundleState" scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <property expression="//p:ParamList/p:Param[3]/p:Value/text()"
+    name="OldStartDateTime" scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <property expression="//p:ParamList/p:Param[4]/p:Value/text()"
+    name="OldEndDateTime" scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <log level="custom">
+    <property expression="get-property('ServiceName')" name="ServiceName"/>
+    <property expression="get-property('method_name')" name="method_name"/>
+    <property expression="get-property('reqPlAN')" name="reqPlAN"/>
+    <property name="SurePay" value="Response"/>
+    <property name="HLAPI" value="QueryBundle"/>
+    <property expression="$ctx:Name" name="Name"/>
+    <property expression="$ctx:Result" name="Result"/>
+    <property expression="$ctx:ErrorCode" name="ErrorCode"/>
+    <property expression="$ctx:ErrorMsg" name="ErrorMsg"/>
+    <property expression="$ctx:Bundle_ID" name="New_BundleID"/>
+    <property expression="$ctx:OldBundleID" name="Old_BundleID"/>
+    <property expression="$ctx:OldBundleState" name="Old_BundleState"/>
+    <property expression="$ctx:OldStartDateTime" name="Old_StartDateTime"/>
+    <property expression="$ctx:OldEndDateTime" name="Old_EndDateTime"/>
+  </log>
+  <property expression="$ctx:OldBundleID" name="OldPlan" scope="default" type="STRING"/>
+  <property name="Step" scope="default" type="STRING" value="2"/>
+  <property name="Nei" scope="default" type="STRING" value="SurePay"/>
+  <property name="Api" scope="default" type="STRING" value="QueryBundle"/>
+  <property name="Action" scope="default" type="STRING" value="Response"/>
+  <sequence key="Tools_LogFormatterSeq"/>
+  <filter regex="false" source="boolean(get-property('OldBundleID'))">
+    <then/>
+    <else>
+      <filter regex="S" source="get-property('OldBundleState')">
+        <then>
+          <property name="Step" scope="default" type="STRING" value="3"/>
+          <property name="Nei" scope="default" type="STRING" value="SurePay"/>
+          <property name="Api" scope="default" type="STRING" value="RemoveBundleSubscription"/>
+          <property name="Action" scope="default" type="STRING" value="Request"/>
+          <sequence key="Tools_LogFormatterSeq"/>
+          <call-template
+            description="VAS_SurePay_RemoveBundleSubscriptionTpl" target="VAS_SurePay_RemoveBundleSubscriptionTpl">
+            <with-param name="AccountID" value="{$ctx:account_id}"/>
+            <with-param name="AccountType" value="Subscriber"/>
+            <with-param name="RequestID" value="{$ctx:reqID}"/>
+            <with-param name="BundleID" value="{$ctx:OldBundleID}"/>
+            <with-param name="TransactionID" value="{$ctx:TransactionID}"/>
+          </call-template>
+          <property description="Result"
+            expression="//p:TaskResponse/p:Result/text()" name="Result"
+            scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+          <property description="Name"
+            expression="//p:TaskResponse/p:Name/text()" name="Name"
+            scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+          <property description="ErrorCode"
+            expression="//p:ErrorInfo/p:ErrorCode/text()"
+            name="ErrorCode" scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+          <property description="ErrorMsg"
+            expression="//p:ErrorInfo/p:ErrorMsg/text()" name="ErrorMsg"
+            scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+          <property name="Step" scope="default" type="STRING" value="3"/>
+          <property name="Nei" scope="default" type="STRING" value="SurePay"/>
+          <property name="Api" scope="default" type="STRING" value="RemoveBundleSubscription"/>
+          <property name="Action" scope="default" type="STRING" value="Response"/>
+          <sequence key="Tools_LogFormatterSeq"/>
+          <filter regex="SUCCESS" source="get-property('Result')">
+            <then/>
+            <else>
+              <property description="error_code" name="error_code"
+                scope="default" type="STRING" value="1005"/>
+              <property description="error_message" name="error_message"
+                scope="default" type="STRING" value="system error"/>
+              <property description="description"
+                expression="get-property('ErrorMsg')" name="description"
+                scope="default" type="STRING"/>
+              <property expression="get-property('uuid')"
+                name="transaction_id" scope="default" type="STRING"/>
+              <sequence key="Tools_GetResponseFormateSeq"/>
+            </else>
+          </filter>
+        </then>
+        <else>
+          <property expression="fn:concat($ctx:OldBundleID,'NA')"
+            name="Bundle_ID_NA" scope="default" type="STRING"/>
+          <property expression="get-property('OldStartDateTime')"
+            name="date_time" scope="default" type="STRING"/>
+          <sequence key="Tools_DateFormatyyyyMMddSeq"/>
+          <property expression="get-property('myDate')"
+            name="OldStartDate_Subscriber" scope="default" type="STRING"/>
+          <property expression="get-property('myTime')"
+            name="OldStartTime_Subscriber" scope="default" type="STRING"/>
+          <property expression="get-property('OldEndDateTime')"
+            name="date_time" scope="default" type="STRING"/>
+          <sequence key="Tools_DateFormatyyyyMMddSeq"/>
+          <property expression="get-property('myDate')"
+            name="OldEndDate_Subscriber" scope="default" type="STRING"/>
+          <property expression="get-property('myTime')"
+            name="OldEndTime_Subscriber" scope="default" type="STRING"/>
+          <property name="Step" scope="default" type="STRING" value="3"/>
+          <property name="Nei" scope="default" type="STRING" value="SurePay"/>
+          <property name="Api" scope="default" type="STRING" value="ModifySubscribeBundle"/>
+          <property name="Action" scope="default" type="STRING" value="Request"/>
+          <sequence key="Tools_LogFormatterSeq"/>
+          <call-template
+            description="VAS_SurePay_ModifySubscribeBundleTpl" target="VAS_SurePay_ModifySubscribeBundleTpl">
+            <with-param name="AccountID" value="{$ctx:account_id}"/>
+            <with-param name="AccountType" value="Subscriber"/>
+            <with-param name="RequestID" value="{$ctx:reqID}"/>
+            <with-param name="BundleID" value="{$ctx:Bundle_ID_NA}"/>
+            <with-param name="OldBundleID" value="{$ctx:OldBundleID}"/>
+            <with-param name="StartDate" value="{$ctx:OldStartDate_Subscriber}"/>
+            <with-param name="EndDate" value="{$ctx:OldEndDate_Subscriber}"/>
+            <with-param name="TransactionID" value="{$ctx:TransactionID}"/>
+            <with-param name="BundleFee" value="0"/>
+            <with-param name="PaymentSource" value="Account"/>
+            <with-param name="StartTime" value="{$ctx:OldStartTime_Subscriber}"/>
+            <with-param name="EndTime" value="{$ctx:OldEndTime_Subscriber}"/>
+            <with-param name="Prorate" value="Y"/>
+          </call-template>
+          <property description="Result"
+            expression="//p:TaskResponse/p:Result/text()" name="Result"
+            scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+          <property description="Name"
+            expression="//p:TaskResponse/p:Name/text()" name="Name"
+            scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+          <property description="ErrorCode"
+            expression="//p:ErrorInfo/p:ErrorCode/text()"
+            name="ErrorCode" scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+          <property description="ErrorMsg"
+            expression="//p:ErrorInfo/p:ErrorMsg/text()" name="ErrorMsg"
+            scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+          <property name="Step" scope="default" type="STRING" value="3"/>
+          <property name="Nei" scope="default" type="STRING" value="SurePay"/>
+          <property name="Api" scope="default" type="STRING" value="ModifySubscribeBundle"/>
+          <property name="Action" scope="default" type="STRING" value="Response"/>
+          <sequence key="Tools_LogFormatterSeq"/>
+          <filter regex="SUCCESS" source="get-property('Result')">
+            <then/>
+            <else>
+              <property description="error_code" name="error_code"
+                scope="default" type="STRING" value="1005"/>
+              <property description="error_message" name="error_message"
+                scope="default" type="STRING" value="system error"/>
+              <property description="description"
+                expression="get-property('ErrorMsg')" name="description"
+                scope="default" type="STRING"/>
+              <property expression="get-property('uuid')"
+                name="transaction_id" scope="default" type="STRING"/>
+              <sequence key="Tools_GetResponseFormateSeq"/>
+            </else>
+          </filter>
+        </else>
+      </filter>
+    </else>
+  </filter>
+  <property name="Step" scope="default" type="STRING" value="4"/>
+  <property name="Nei" scope="default" type="STRING" value="SurePay"/>
+  <property name="Api" scope="default" type="STRING" value="SubscribeBundle"/>
+  <property name="Action" scope="default" type="STRING" value="Request"/>
+  <sequence key="Tools_LogFormatterSeq"/>
+  <call-template description="VAS_SurePay_SubscribeBundleTpl" target="VAS_SurePay_SubscribeBundleTpl">
+    <with-param name="AccountID" value="{$ctx:account_id}"/>
+    <with-param name="AccountType" value="Subscriber"/>
+    <with-param name="RequestID" value="{$ctx:reqID}"/>
+    <with-param name="BundleID" value="{$ctx:Bundle_ID}"/>
+    <with-param name="TransactionID" value="{$ctx:TransactionID}"/>
+  </call-template>
+  <property description="Result"
+    expression="//p:TaskResponse/p:Result/text()" name="Result"
+    scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <property description="Name"
+    expression="//p:TaskResponse/p:Name/text()" name="Name"
+    scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <property description="ErrorCode"
+    expression="//p:ErrorInfo/p:ErrorCode/text()" name="ErrorCode"
+    scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <property description="ErrorMsg"
+    expression="//p:ErrorInfo/p:ErrorMsg/text()" name="ErrorMsg"
+    scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <property name="Step" scope="default" type="STRING" value="4"/>
+  <property name="Nei" scope="default" type="STRING" value="SurePay"/>
+  <property name="Api" scope="default" type="STRING" value="SubscribeBundle"/>
+  <property name="Action" scope="default" type="STRING" value="Response"/>
+  <sequence key="Tools_LogFormatterSeq"/>
+  <filter regex="SUCCESS" source="get-property('Result')">
+    <then>
+      <clone>
+        <target>
+          <sequence>
+            <call-template description="XG_MigrationPlanTpl" target="XG_MigrationPlanTpl"/>
+          </sequence>
+        </target>
+        <target>
+          <sequence>
+            <property description="error_code" name="error_code"
+              scope="default" type="STRING" value="0000"/>
+            <property description="error_message" name="error_message"
+              scope="default" type="STRING" value="success subscribe"/>
+            <property description="description"
+              expression="get-property('ErrorMsg')" name="description"
+              scope="default" type="STRING"/>
+            <property expression="get-property('uuid')"
+              name="transaction_id" scope="default" type="STRING"/>
+            <sequence key="Tools_GetResponseFormateSeq"/>
+          </sequence>
+        </target>
+      </clone>
+    </then>
+    <else>
+      <property description="error_code" name="error_code"
+        scope="default" type="STRING" value="1005"/>
+      <property description="error_message" name="error_message"
+        scope="default" type="STRING" value="system error"/>
+      <property description="description"
+        expression="get-property('ErrorMsg')" name="description"
+        scope="default" type="STRING"/>
+      <property expression="get-property('uuid')" name="transaction_id"
+        scope="default" type="STRING"/>
+      <sequence key="Tools_GetResponseFormateSeq"/>
+    </else>
+  </filter>
+</sequence>

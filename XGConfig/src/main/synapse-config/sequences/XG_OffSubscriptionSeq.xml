@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sequence name="XG_OffSubscriptionSeq" trace="disable" xmlns="http://ws.apache.org/ns/synapse">
+  <property name="Step" scope="default" type="STRING" value="1"/>
+  <property name="Nei" scope="default" type="STRING" value="SurePay"/>
+  <property name="Api" scope="default" type="STRING" value="QueryBundle"/>
+  <property name="Action" scope="default" type="STRING" value="Request"/>
+  <sequence key="Tools_LogFormatterSeq"/>
+  <call-template description="VAS_SurePay_QueryBundleTpl" target="VAS_SurePay_QueryBundleTpl">
+    <with-param name="AccountID" value="{$ctx:account_id}"/>
+    <with-param name="AccountType" value="Subscriber"/>
+    <with-param name="RequestID" value="{$ctx:reqID}"/>
+  </call-template>
+  <property description="Result"
+    expression="//p:TaskResponse/p:Result/text()" name="Result"
+    scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <property description="Name"
+    expression="//p:TaskResponse/p:Name/text()" name="Name"
+    scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <property description="ErrorCode"
+    expression="//p:ErrorInfo/p:ErrorCode/text()" name="ErrorCode"
+    scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <property description="ErrorMsg"
+    expression="//p:ErrorInfo/p:ErrorMsg/text()" name="ErrorMsg"
+    scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <xslt key="conf:/XGAutoSubscription.xslt">
+    <resource key="conf:/XGAutoSubscription.xslt" location="XGAutoSubscription.xslt"/>
+  </xslt>
+  <property expression="//p:ParamList/p:Param[1]/p:Value/text()"
+    name="OldBundleID" scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <property expression="//p:ParamList/p:Param[2]/p:Value/text()"
+    name="OldBundleState" scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <property expression="//p:ParamList/p:Param[3]/p:Value/text()"
+    name="OldStartDateTime" scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <property expression="//p:ParamList/p:Param[4]/p:Value/text()"
+    name="OldEndDateTime" scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <log level="custom">
+    <property expression="get-property('ServiceName')" name="ServiceName"/>
+    <property expression="get-property('method_name')" name="method_name"/>
+    <property expression="get-property('reqPlAN')" name="reqPlAN"/>
+    <property name="SurePay" value="Response"/>
+    <property name="HLAPI" value="QueryBundle"/>
+    <property expression="$ctx:Name" name="Name"/>
+    <property expression="$ctx:Result" name="Result"/>
+    <property expression="$ctx:ErrorCode" name="ErrorCode"/>
+    <property expression="$ctx:ErrorMsg" name="ErrorMsg"/>
+    <property expression="$ctx:Bundle_ID" name="New_BundleID"/>
+    <property expression="$ctx:OldBundleID" name="Old_BundleID"/>
+    <property expression="$ctx:OldBundleState" name="Old_BundleState"/>
+    <property expression="$ctx:OldStartDateTime" name="Old_StartDateTime"/>
+    <property expression="$ctx:OldEndDateTime" name="Old_EndDateTime"/>
+  </log>
+  <filter regex="false" source="boolean(get-property('OldBundleID'))">
+    <then>
+      <property description="ErrorCode" name="ErrorCode" scope="default"
+        type="STRING" value="1005"/>
+      <property description="ErrorMsg"
+        expression="fn:concat('0100 : ','not yet subscribe')"
+        name="ErrorMsg" scope="default" type="STRING"/>
+      <property name="Step" scope="default" type="STRING" value="1"/>
+      <property name="Nei" scope="default" type="STRING" value="SurePay"/>
+      <property name="Api" scope="default" type="STRING" value="QueryBundle"/>
+      <property name="Action" scope="default" type="STRING" value="Response"/>
+      <sequence key="Tools_LogFormatterSeq"/>
+      <property description="submitSM" name="submitSM" scope="default"
+        type="STRING" value="Y"/>
+      <enrich>
+        <source clone="true" property="INIT_VASAPP_PLAN_CONFIG_MSG" type="property"/>
+        <target type="envelope"/>
+      </enrich>
+      <property description="code" name="code" scope="default"
+        type="STRING" value="0015"/>
+      <sequence key="Tools_GetNotificationSeq"/>
+      <property description="destination" expression="$ctx:account_id"
+        name="destination" scope="default" type="STRING"/>
+      <sequence key="Tools_SubmitSMSeq"/>
+      <property description="error_code" name="error_code"
+        scope="default" type="STRING" value="1005"/>
+      <property description="error_message" name="error_message"
+        scope="default" type="STRING" value="system error"/>
+      <property description="description"
+        expression="get-property('ErrorMsg')" name="description"
+        scope="default" type="STRING"/>
+      <property expression="get-property('uuid')" name="transaction_id"
+        scope="default" type="STRING"/>
+      <sequence key="Tools_GetResponseFormateSeq"/>
+    </then>
+    <else>
+      <property expression="fn:concat($ctx:OldBundleID,'NA')"
+        name="Bundle_ID_NA" scope="default" type="STRING"/>
+      <property expression="get-property('OldStartDateTime')"
+        name="date_time" scope="default" type="STRING"/>
+      <sequence key="Tools_DateFormatyyyyMMddSeq"/>
+      <property expression="get-property('myDate')"
+        name="OldStartDate_Subscriber" scope="default" type="STRING"/>
+      <property expression="get-property('myTime')"
+        name="OldStartTime_Subscriber" scope="default" type="STRING"/>
+      <property expression="get-property('OldEndDateTime')"
+        name="date_time" scope="default" type="STRING"/>
+      <sequence key="Tools_DateFormatyyyyMMddSeq"/>
+      <property expression="get-property('myDate')"
+        name="OldEndDate_Subscriber" scope="default" type="STRING"/>
+      <property expression="get-property('myTime')"
+        name="OldEndTime_Subscriber" scope="default" type="STRING"/>
+      <log level="custom">
+        <property expression="get-property('ServiceName')" name="ServiceName"/>
+        <property expression="get-property('method_name')" name="method_name"/>
+        <property expression="get-property('reqPlAN')" name="reqPlAN"/>
+        <property name="SurePay" value="Request"/>
+        <property name="HLAPI" value="SubscribeBundle"/>
+        <property expression="$ctx:account_id" name="AccountID"/>
+        <property expression="$ctx:Bundle_ID_NA" name="Bundle_ID_NA"/>
+        <property expression="$ctx:Old_BundleID" name="OldBundleID"/>
+        <property expression="$ctx:OldStartDate_Subscriber" name="OldStartDate_Subscriber"/>
+        <property expression="$ctx:OldStartTime_Subscriber" name="OldStartTime_Subscriber"/>
+        <property expression="$ctx:OldEndDate_Subscriber" name="OldEndDate_Subscriber"/>
+        <property expression="$ctx:OldEndTime_Subscriber" name="OldEndTime_Subscriber"/>
+      </log>
+      <property name="Step" scope="default" type="STRING" value="2"/>
+      <property name="Nei" scope="default" type="STRING" value="SurePay"/>
+      <property name="Api" scope="default" type="STRING" value="ModifySubscribeBundle"/>
+      <property name="Action" scope="default" type="STRING" value="Request"/>
+      <sequence key="Tools_LogFormatterSeq"/>
+      <call-template description="VAS_SurePay_ModifySubscribeBundleTpl" target="VAS_SurePay_ModifySubscribeBundleTpl">
+        <with-param name="AccountID" value="{$ctx:account_id}"/>
+        <with-param name="AccountType" value="Subscriber"/>
+        <with-param name="RequestID" value="{$ctx:reqID}"/>
+        <with-param name="BundleID" value="{$ctx:Bundle_ID_NA}"/>
+        <with-param name="OldBundleID" value="{$ctx:OldBundleID}"/>
+        <with-param name="StartDate" value="{$ctx:OldStartDate_Subscriber}"/>
+        <with-param name="EndDate" value="{$ctx:OldEndDate_Subscriber}"/>
+        <with-param name="TransactionID" value="{$ctx:TransactionID}"/>
+        <with-param name="BundleFee" value="0"/>
+        <with-param name="PaymentSource" value="Account"/>
+        <with-param name="StartTime" value="{$ctx:OldStartTime_Subscriber}"/>
+        <with-param name="EndTime" value="{$ctx:OldEndTime_Subscriber}"/>
+      </call-template>
+      <property description="Result"
+        expression="//p:TaskResponse/p:Result/text()" name="Result"
+        scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+      <property description="Name"
+        expression="//p:TaskResponse/p:Name/text()" name="Name"
+        scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+      <property description="ErrorCode"
+        expression="//p:ErrorInfo/p:ErrorCode/text()" name="ErrorCode"
+        scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+      <property description="ErrorMsg"
+        expression="//p:ErrorInfo/p:ErrorMsg/text()" name="ErrorMsg"
+        scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+      <property name="Step" scope="default" type="STRING" value="2"/>
+      <property name="Nei" scope="default" type="STRING" value="SurePay"/>
+      <property name="Api" scope="default" type="STRING" value="ModifySubscribeBundle"/>
+      <property name="Action" scope="default" type="STRING" value="Response"/>
+      <sequence key="Tools_LogFormatterSeq"/>
+      <filter regex="SUCCESS" source="get-property('Result')">
+        <then>
+          <property description="submitSM" name="submitSM"
+            scope="default" type="STRING" value="Y"/>
+          <enrich>
+            <source clone="true" property="INIT_VASAPP_PLAN_CONFIG_MSG" type="property"/>
+            <target type="envelope"/>
+          </enrich>
+          <log level="full"/>
+          <property description="code" name="code" scope="default"
+            type="STRING" value="0013"/>
+          <sequence key="Tools_GetNotificationSeq"/>
+          <property description="destination"
+            expression="$ctx:account_id" name="destination"
+            scope="default" type="STRING"/>
+          <sequence key="Tools_SubmitSMSeq"/>
+          <property description="error_code" name="error_code"
+            scope="default" type="STRING" value="0000"/>
+          <property description="error_message" name="error_message"
+            scope="default" type="STRING" value="success stop bundle renewal"/>
+          <property description="description"
+            expression="get-property('ErrorMsg')" name="description"
+            scope="default" type="STRING"/>
+          <property expression="get-property('uuid')"
+            name="transaction_id" scope="default" type="STRING"/>
+          <sequence key="Tools_GetResponseFormateSeq"/>
+        </then>
+        <else>
+          <property description="submitSM" name="submitSM"
+            scope="default" type="STRING" value="Y"/>
+          <enrich>
+            <source clone="true" property="INIT_VASAPP_PLAN_CONFIG_MSG" type="property"/>
+            <target type="envelope"/>
+          </enrich>
+          <log level="full"/>
+          <property description="code" name="code" scope="default"
+            type="STRING" value="0014"/>
+          <sequence key="Tools_GetNotificationSeq"/>
+          <property description="destination"
+            expression="$ctx:account_id" name="destination"
+            scope="default" type="STRING"/>
+          <sequence key="Tools_SubmitSMSeq"/>
+          <property description="error_code" name="error_code"
+            scope="default" type="STRING" value="1005"/>
+          <property description="error_message" name="error_message"
+            scope="default" type="STRING" value="system error"/>
+          <property description="description"
+            expression="get-property('ErrorMsg')" name="description"
+            scope="default" type="STRING"/>
+          <property expression="get-property('uuid')"
+            name="transaction_id" scope="default" type="STRING"/>
+          <sequence key="Tools_GetResponseFormateSeq"/>
+        </else>
+      </filter>
+    </else>
+  </filter>
+</sequence>

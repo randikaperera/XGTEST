@@ -1,0 +1,24 @@
+{
+	"id": "d369dce6-3f16-4853-b160-849156bebf52",
+	"name": "Dev",
+	"values": [
+		{
+			"key": "username",
+			"value": "mitratest",
+			"enabled": true
+		},
+		{
+			"key": "password",
+			"value": "Mitra@te$",
+			"enabled": true
+		},
+		{
+			"key": "hostName",
+			"value": "https://172.16.100.24:8243",
+			"enabled": true
+		}
+	],
+	"_postman_variable_scope": "environment",
+	"_postman_exported_at": "2019-11-13T07:05:20.260Z",
+	"_postman_exported_using": "Postman/7.10.0"
+}

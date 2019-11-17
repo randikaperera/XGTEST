@@ -1,0 +1,703 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sequence name="XG_SubscribeSeq" trace="disable" xmlns="http://ws.apache.org/ns/synapse">
+  <property
+    expression="fn:concat($ctx:Reason,'_',$ctx:UserID,'_',fn:substring(get-property('SYSTEM_TIME'),8))"
+    name="TransactionID" scope="default" type="STRING" xmlns:ns="http://org.apache.synapse/xsd"/>
+  <property description="Timestamp"
+    expression="get-property('SYSTEM_DATE', 'dd/MM/yyyy HH:mm:ss')"
+    name="Timestamp" scope="default" type="STRING"/>
+  <property description="destination" expression="$ctx:account_id"
+    name="destination" scope="default" type="STRING"/>
+  <property
+    expression="get-property('registry','gov:/VASApp/XG/localEntry/XG_NotificationConfig.xml')"
+    name="resultOM1" scope="default" type="OM"/>
+  <property description="submitSM" name="submitSM" scope="default"
+    type="STRING" value="Y"/>
+  <payloadFactory media-type="xml">
+    <format>
+      <RetrieveRequest xmlns="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0">
+        <SessionInfo>
+          <sessionId>1</sessionId>
+        </SessionInfo>
+        <RequestInfo>
+          <ReqID>$1</ReqID>
+        </RequestInfo>
+        <NERoutingInfo>
+          <NeName/>
+          <NeGroupName/>
+          <DistributionKey/>
+        </NERoutingInfo>
+        <TaskList>
+          <Task>
+            <Name>Query Subscriber Account</Name>
+            <QueryCriteria>
+              <Param>
+                <Name>Account ID</Name>
+                <Value>$2</Value>
+              </Param>
+            </QueryCriteria>
+          </Task>
+        </TaskList>
+      </RetrieveRequest>
+    </format>
+    <args>
+      <arg evaluator="xml" expression="$ctx:reqID" xmlns:ns="http://org.apache.synapse/xsd"/>
+      <arg evaluator="xml" expression="$ctx:account_id" xmlns:ns="http://org.apache.synapse/xsd"/>
+    </args>
+  </payloadFactory>
+  <property name="Step" scope="default" type="STRING" value="1"/>
+  <property name="Nei" scope="default" type="STRING" value="SurePay"/>
+  <property name="Api" scope="default" type="STRING" value="QuerySubscriberAccount"/>
+  <property name="Action" scope="default" type="STRING" value="Request"/>
+  <sequence key="Tools_LogFormatterSeq"/>
+  <sequence key="NE_SurePayHandlerSeq"/>
+  <property description="Result"
+    expression="//p:TaskResponse/p:Result/text()" name="Result"
+    scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <property description="Name"
+    expression="//p:TaskResponse/p:Name/text()" name="Name"
+    scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <property description="ErrorCode"
+    expression="//p:ErrorInfo/p:ErrorCode/text()" name="ErrorCode"
+    scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <property description="ErrorMsg"
+    expression="//p:ErrorInfo/p:ErrorMsg/text()" name="ErrorMsg"
+    scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <property
+    expression="//p:ParamList/p:Param[p:Name/text()='Class of Service ID']/p:Value/text()"
+    name="ClassofServiceID" scope="default" type="STRING"
+    xmlns:ns="http://org.apache.synapse/xsd" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <property
+    expression="//p:ParamList/p:Param[p:Name/text()='SIM State']/p:Value/text()"
+    name="SIMState" scope="default" type="STRING"
+    xmlns:ns="http://org.apache.synapse/xsd" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <property
+    expression="//p:ParamList/p:Param[p:Name/text()='Time Last Activation']/p:Value/text()"
+    name="TimeLastActivation" scope="default" type="STRING"
+    xmlns:ns="http://org.apache.synapse/xsd" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <property
+    expression="//p:ParamList/p:Param[p:Name/text()='First Call Made Timestamp']/p:Value/text()"
+    name="FirstCallMadeTimestamp" scope="default" type="STRING"
+    xmlns:ns="http://org.apache.synapse/xsd" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <filter regex="FAILURE" source="get-property('Result')">
+    <then>
+      <property name="code" scope="default" type="STRING" value="001"/>
+      <sequence key="gov:VASApp/XG/sequences/XG_GetNotificationSeq.xml"/>
+      <sequence key="Tools_SubmitSMSeq"/>
+      <property description="ActionResult" name="ActionResult"
+        scope="default" type="STRING" value="fail"/>
+      <property name="Step" scope="default" type="STRING" value="1"/>
+      <property name="Nei" scope="default" type="STRING" value="SurePay"/>
+      <property name="Api" scope="default" type="STRING" value="QuerySubscriberAccount"/>
+      <property name="Action" scope="default" type="STRING" value="Response"/>
+      <sequence key="Tools_LogFormatterSeq"/>
+      <sequence key="gov:VASApp/XG/sequences/XG_RespondSeq.xml"/>
+      <drop/>
+    </then>
+    <else/>
+  </filter>
+  <property
+    expression="get-property('registry','gov:/VASApp/XG/localEntry/XG_Config.xml')"
+    name="resultOM" scope="default" type="OM"/>
+  <property expression="$ctx:resultOM//root" name="RootOM"
+    scope="default" type="OM"/>
+  <enrich>
+    <source clone="true" property="RootOM" type="property"/>
+    <target type="body"/>
+  </enrich>
+  <property
+    expression="//ClassofServiceID[Name/text()=$ctx:ClassofServiceID]/status/text()"
+    name="status" scope="default" type="STRING"/>
+  <property
+    expression="//ClassofServiceID[Name/text()=$ctx:ClassofServiceID]/blockdate/text()"
+    name="blockdate" scope="default" type="STRING"/>
+  <property
+    expression="//ClassofServiceID[Name/text()=$ctx:ClassofServiceID]/Purchase_Fee/text()"
+    name="Purchase_Fee" scope="default" type="STRING"/>
+  <filter xmlns:ns="http://org.apache.synapse/xsd" xpath="get-property('SIMState') = 'ACTIVE'">
+    <then/>
+    <else>
+      <property name="code" scope="default" type="STRING" value="003"/>
+      <sequence key="gov:VASApp/XG/sequences/XG_GetNotificationSeq.xml"/>
+      <sequence key="Tools_SubmitSMSeq"/>
+      <property description="ActionResult" name="ActionResult"
+        scope="default" type="STRING" value="fail"/>
+      <property expression="get-property('description')" name="ErrorMsg"
+        scope="default" type="STRING"/>
+      <property name="Step" scope="default" type="STRING" value="1"/>
+      <property name="Nei" scope="default" type="STRING" value="SurePay"/>
+      <property name="Api" scope="default" type="STRING" value="QuerySubscriberAccount"/>
+      <property name="Action" scope="default" type="STRING" value="Response"/>
+      <sequence key="Tools_LogFormatterSeq"/>
+      <sequence key="gov:VASApp/XG/sequences/XG_RespondSeq.xml"/>
+      <drop/>
+    </else>
+  </filter>
+  <filter regex="0" source="get-property('FirstCallMadeTimestamp')" xmlns:ns="http://org.apache.synapse/xsd">
+    <then>
+      <property name="code" scope="default" type="STRING" value="003"/>
+      <sequence key="gov:VASApp/XG/sequences/XG_GetNotificationSeq.xml"/>
+      <sequence key="Tools_SubmitSMSeq"/>
+      <property description="ActionResult" name="ActionResult"
+        scope="default" type="STRING" value="fail"/>
+      <property expression="get-property('description')" name="ErrorMsg"
+        scope="default" type="STRING"/>
+      <property name="Step" scope="default" type="STRING" value="1"/>
+      <property name="Nei" scope="default" type="STRING" value="SurePay"/>
+      <property name="Api" scope="default" type="STRING" value="QuerySubscriberAccount"/>
+      <property name="Action" scope="default" type="STRING" value="Response"/>
+      <sequence key="Tools_LogFormatterSeq"/>
+      <sequence key="gov:VASApp/XG/sequences/XG_RespondSeq.xml"/>
+      <drop/>
+    </then>
+    <else/>
+  </filter>
+  <filter regex="true" source="boolean($ctx:blockdate)">
+    <then>
+      <property expression="$ctx:FirstCallMadeTimestamp"
+        name="unixSeconds" scope="default" type="STRING" xmlns:ns="http://org.apache.synapse/xsd"/>
+      <sequence key="Tools_UnixTimestampSeq"/>
+      <property expression="get-property('myDate')" name="strDate1"
+        scope="default" type="STRING" xmlns:ns="http://org.apache.synapse/xsd"/>
+      <property
+        expression="get-property('SYSTEM_DATE', 'dd/MM/yyyy HH:mm:ss')"
+        name="strDate2" scope="default" type="STRING" xmlns:ns="http://org.apache.synapse/xsd"/>
+      <sequence key="Tools_SubtractTwoDateTimeSeq"/>
+      <property expression="get-property('days')" name="days"
+        scope="default" type="STRING" xmlns:ns="http://org.apache.synapse/xsd"/>
+      <filter xpath="fn:number($ctx:days) >=  fn:number($ctx:blockdate)">
+        <then/>
+        <else>
+          <property name="code" scope="default" type="STRING" value="004"/>
+          <sequence key="gov:VASApp/XG/sequences/XG_GetNotificationSeq.xml"/>
+          <sequence key="Tools_SubmitSMSeq"/>
+          <property description="ActionResult" name="ActionResult"
+            scope="default" type="STRING" value="fail"/>
+          <property expression="get-property('description')"
+            name="ErrorMsg" scope="default" type="STRING"/>
+          <property name="Step" scope="default" type="STRING" value="1"/>
+          <property name="Nei" scope="default" type="STRING" value="SurePay"/>
+          <property name="Api" scope="default" type="STRING" value="QuerySubscriberAccount"/>
+          <property name="Action" scope="default" type="STRING" value="Response"/>
+          <sequence key="Tools_LogFormatterSeq"/>
+          <sequence key="gov:VASApp/XG/sequences/XG_RespondSeq.xml"/>
+          <drop/>
+        </else>
+      </filter>
+    </then>
+    <else/>
+  </filter>
+  <property name="Step" scope="default" type="STRING" value="1"/>
+  <property name="Nei" scope="default" type="STRING" value="SurePay"/>
+  <property name="Api" scope="default" type="STRING" value="QuerySubscriberAccount"/>
+  <property name="Action" scope="default" type="STRING" value="Response"/>
+  <sequence key="Tools_LogFormatterSeq"/>
+  <payloadFactory media-type="xml">
+    <format>
+      <SubmitRequest xmlns="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0">
+        <SessionInfo>
+          <sessionId>1</sessionId>
+        </SessionInfo>
+        <RequestInfo>
+          <ReqID>$1</ReqID>
+        </RequestInfo>
+        <NERoutingInfo>
+          <NeName/>
+          <NeGroupName/>
+          <DistributionKey/>
+        </NERoutingInfo>
+        <TaskList>
+          <Task>
+            <Name>Adjust Balance</Name>
+            <ParamList>
+              <Param>
+                <Name>Account ID</Name>
+                <Value>$2</Value>
+              </Param>
+              <Param>
+                <Name>Account Type</Name>
+                <Value>Subscriber</Value>
+              </Param>
+              <Param>
+                <Name>Amount</Name>
+                <Value>$3</Value>
+              </Param>
+              <Param>
+                <Name>Balance</Name>
+                <Value>Primary</Value>
+              </Param>
+              <Param>
+                <Name>Method</Name>
+                <Value>INCR</Value>
+              </Param>
+              <Param>
+                <Name>Generate AMA</Name>
+                <Value>Y</Value>
+              </Param>
+              <Param>
+                <Name>Recharge</Name>
+                <Value>Y</Value>
+              </Param>
+              <Param>
+                <Name>Credit Validity Delta</Name>
+                <Value>0</Value>
+              </Param>
+            </ParamList>
+          </Task>
+        </TaskList>
+      </SubmitRequest>
+    </format>
+    <args>
+      <arg evaluator="xml" expression="get-property('Timestamp')"/>
+      <arg evaluator="xml" expression="get-property('account_id')"/>
+      <arg evaluator="xml" expression="get-property('Subscription_ID')"/>
+    </args>
+  </payloadFactory>
+  <property name="Step" scope="default" type="STRING" value="2"/>
+  <property name="Nei" scope="default" type="STRING" value="SurePay"/>
+  <property name="Api" scope="default" type="STRING" value="AdjustBalance-dg"/>
+  <property name="Action" scope="default" type="STRING" value="Request"/>
+  <sequence key="Tools_LogFormatterSeq"/>
+  <sequence key="NE_SurePayHandlerSeq"/>
+  <property description="Result"
+    expression="//p:TaskResponse/p:Result/text()" name="Result"
+    scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <property description="Name"
+    expression="//p:TaskResponse/p:Name/text()" name="Name"
+    scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <property description="ErrorCode"
+    expression="//p:ErrorInfo/p:ErrorCode/text()" name="ErrorCode"
+    scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <property description="ErrorMsg"
+    expression="//p:ErrorInfo/p:ErrorMsg/text()" name="ErrorMsg"
+    scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <filter regex="SUCCESS" source="get-property('Result')">
+    <then/>
+    <else>
+      <property name="code" scope="default" type="STRING" value="005"/>
+      <sequence key="gov:VASApp/XG/sequences/XG_GetNotificationSeq.xml"/>
+      <property description="ActionResult" name="ActionResult"
+        scope="default" type="STRING" value="fail"/>
+      <property name="Step" scope="default" type="STRING" value="2"/>
+      <property name="Nei" scope="default" type="STRING" value="SurePay"/>
+      <property name="Api" scope="default" type="STRING" value="AdjustBalance-dg"/>
+      <property name="Action" scope="default" type="STRING" value="Response"/>
+      <sequence key="Tools_LogFormatterSeq"/>
+      <sequence key="gov:VASApp/XG/sequences/XG_RespondSeq.xml"/>
+    </else>
+  </filter>
+  <property name="Step" scope="default" type="STRING" value="2"/>
+  <property name="Nei" scope="default" type="STRING" value="SurePay"/>
+  <property name="Api" scope="default" type="STRING" value="AdjustBalance-dg"/>
+  <property name="Action" scope="default" type="STRING" value="Response"/>
+  <sequence key="Tools_LogFormatterSeq"/>
+  <payloadFactory media-type="xml">
+    <format>
+      <RetrieveRequest xmlns="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0">
+        <SessionInfo>
+          <sessionId>1</sessionId>
+        </SessionInfo>
+        <RequestInfo>
+          <ReqID>$1</ReqID>
+        </RequestInfo>
+        <NERoutingInfo>
+          <NeName/>
+          <NeGroupName/>
+          <DistributionKey/>
+        </NERoutingInfo>
+        <TaskList>
+          <Task>
+            <Name>Query Bundle</Name>
+            <QueryCriteria>
+              <Param>
+                <Name>Account ID</Name>
+                <Value>$2</Value>
+              </Param>
+              <Param>
+                <Name>Account Type</Name>
+                <Value>Subscriber</Value>
+              </Param>
+              <Param>
+                <Name>Operation Type</Name>
+                <Value>Query All</Value>
+              </Param>
+            </QueryCriteria>
+          </Task>
+        </TaskList>
+      </RetrieveRequest>
+    </format>
+    <args>
+      <arg evaluator="xml" expression="$ctx:Timestamp" xmlns:ns="http://org.apache.synapse/xsd"/>
+      <arg evaluator="xml" expression="$ctx:account_id" xmlns:ns="http://org.apache.synapse/xsd"/>
+    </args>
+  </payloadFactory>
+  <property name="Step" scope="default" type="STRING" value="3"/>
+  <property name="Nei" scope="default" type="STRING" value="SurePay"/>
+  <property name="Api" scope="default" type="STRING" value="QueryBundle"/>
+  <property name="Action" scope="default" type="STRING" value="Request"/>
+  <sequence key="Tools_LogFormatterSeq"/>
+  <sequence key="NE_SurePayHandlerSeq"/>
+  <property description="Result"
+    expression="//p:TaskResponse/p:Result/text()" name="Result"
+    scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <property description="Name"
+    expression="//p:TaskResponse/p:Name/text()" name="Name"
+    scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <property description="ErrorCode"
+    expression="//p:ErrorInfo/p:ErrorCode/text()" name="ErrorCode"
+    scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <property description="ErrorMsg"
+    expression="//p:ErrorInfo/p:ErrorMsg/text()" name="ErrorMsg"
+    scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <xslt key="gov:/VASApp/XG/xslt/XG_GetAutoSubscription.xslt">
+    <resource key="gov:/VASApp/XG/xslt/XG_GetAutoSubscription.xslt" location="XG_GetAutoSubscription.xslt"/>
+  </xslt>
+  <property expression="//p:ParamList[1]/p:Param[1]/p:Value/text()"
+    name="OldBundleID" scope="default" type="STRING"
+    xmlns:ns="http://org.apache.synapse/xsd" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <property description="OldPlan"
+    expression="get-property('OldBundleID')" name="OldPlan"
+    scope="default" type="STRING"/>
+  <property name="Step" scope="default" type="STRING" value="3"/>
+  <property name="Nei" scope="default" type="STRING" value="SurePay"/>
+  <property name="Api" scope="default" type="STRING" value="QueryBundle"/>
+  <property name="Action" scope="default" type="STRING" value="Response"/>
+  <sequence key="Tools_LogFormatterSeq"/>
+  <filter regex="true" source="boolean(get-property('OldBundleID'))" xmlns:ns="http://org.apache.synapse/xsd">
+    <then>
+      <property expression="//p:ParamList[1]/p:Param[2]/p:Value/text()"
+        name="OldBundleState" scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+      <filter regex="S" source="get-property('OldBundleState')">
+        <then>
+          <payloadFactory media-type="xml">
+            <format>
+              <SubmitRequest xmlns="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0">
+                <SessionInfo>
+                  <sessionId>1</sessionId>
+                </SessionInfo>
+                <RequestInfo>
+                  <ReqID>$1</ReqID>
+                </RequestInfo>
+                <NERoutingInfo>
+                  <NeName/>
+                  <NeGroupName/>
+                  <DistributionKey/>
+                </NERoutingInfo>
+                <TaskList>
+                  <Task>
+                    <Name>Remove Bundle Subscription</Name>
+                    <ParamList>
+                      <Param>
+                        <Name>Account ID</Name>s
+                         <Value>$2</Value>
+                      </Param>
+                      <Param>
+                        <Name>Bundle ID</Name>
+                        <Value>$3</Value>
+                      </Param>
+                      <Param>
+                        <Name>Account Type</Name>
+                        <Value>Subscriber</Value>
+                      </Param>
+                      <Param>
+                        <Name>Transaction ID</Name>
+                        <Value>$4</Value>
+                      </Param>
+                    </ParamList>
+                  </Task>
+                </TaskList>
+              </SubmitRequest>
+            </format>
+            <args>
+              <arg evaluator="xml" expression="$ctx:Timestamp"/>
+              <arg evaluator="xml" expression="$ctx:account_id"/>
+              <arg evaluator="xml" expression="$ctx:OldBundleID"/>
+              <arg evaluator="xml" expression="$ctx:TransactionID"/>
+            </args>
+          </payloadFactory>
+          <property name="Step" scope="default" type="STRING" value="4"/>
+          <property name="Nei" scope="default" type="STRING" value="SurePay"/>
+          <property name="Api" scope="default" type="STRING" value="RemoveBundleSubscription"/>
+          <property name="Action" scope="default" type="STRING" value="Request"/>
+          <sequence key="Tools_LogFormatterSeq"/>
+          <sequence key="NE_SurePayHandlerSeq"/>
+          <property description="Result"
+            expression="//p:TaskResponse/p:Result/text()" name="Result"
+            scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+          <property description="Name"
+            expression="//p:TaskResponse/p:Name/text()" name="Name"
+            scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+          <property description="ErrorCode"
+            expression="//p:ErrorInfo/p:ErrorCode/text()"
+            name="ErrorCode" scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+          <property description="ErrorMsg"
+            expression="//p:ErrorInfo/p:ErrorMsg/text()" name="ErrorMsg"
+            scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+          <filter regex="SUCCESS" source="get-property('Result')">
+            <then/>
+            <else>
+              <property name="code" scope="default" type="STRING" value="005"/>
+              <sequence key="gov:VASApp/XG/sequences/XG_GetNotificationSeq.xml"/>
+              <property description="Result" name="Result"
+                scope="default" type="STRING" value="fail"/>
+              <property name="Step" scope="default" type="STRING" value="4"/>
+              <property name="Nei" scope="default" type="STRING" value="SurePay"/>
+              <property name="Api" scope="default" type="STRING" value="RemoveBundleSubscription"/>
+              <property name="Action" scope="default" type="STRING" value="Response"/>
+              <sequence key="Tools_LogFormatterSeq"/>
+              <sequence key="gov:VASApp/XG/sequences/XG_RespondSeq.xml"/>
+            </else>
+          </filter>
+          <property name="Step" scope="default" type="STRING" value="4"/>
+          <property name="Nei" scope="default" type="STRING" value="SurePay"/>
+          <property name="Api" scope="default" type="STRING" value="RemoveBundleSubscription"/>
+          <property name="Action" scope="default" type="STRING" value="Response"/>
+          <sequence key="Tools_LogFormatterSeq"/>
+        </then>
+        <else>
+          <property
+            expression="$ctx:VASAppConfig//service[ServiceName/text()='XG']/plan[Bundle_ID/text()=$ctx:OldBundleID]/Bundle_Validity/text()"
+            name="sub_date_number" scope="default" type="STRING"/>
+          <property
+            expression="substring(//p:ParamList[1]/p:Param[4]/p:Value/text(),1,8)"
+            name="strDate" scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+          <sequence key="Tools_SubtractTwoDateTimeSeq2"/>
+          <property expression="get-property('datetime')"
+            name="OldStartDate" scope="default" type="STRING"/>
+          <property
+            expression="substring(//p:ParamList[1]/p:Param[4]/p:Value/text(),1,8)"
+            name="OldEndDate" scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+          <property
+            expression="substring(//p:ParamList[1]/p:Param[4]/p:Value/text(),9,14)"
+            name="OldEndTime" scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+          <property
+            expression="substring(//p:ParamList[1]/p:Param[4]/p:Value/text(),9,14)"
+            name="OldStartTime" scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+          <payloadFactory media-type="xml">
+            <format>
+              <SubmitRequest xmlns="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0">
+                <SessionInfo>
+                  <sessionId>1</sessionId>
+                </SessionInfo>
+                <RequestInfo>
+                  <ReqID>$1</ReqID>
+                </RequestInfo>
+                <NERoutingInfo>
+                  <NeName/>
+                  <NeGroupName/>
+                  <DistributionKey/>
+                </NERoutingInfo>
+                <TaskList>
+                  <Task>
+                    <Name>Subscribe Bundle</Name>
+                    <ParamList>
+                      <Param>
+                        <Name>Account ID</Name>
+                        <Value>$2</Value>
+                      </Param>
+                      <Param>
+                        <Name>Bundle ID</Name>
+                        <Value>$3NA</Value>
+                      </Param>
+                      <Param>
+                        <Name>Account Type</Name>
+                        <Value>Subscriber</Value>
+                      </Param>
+                      <Param>
+                        <Name>Bundle Fee</Name>
+                        <Value>0</Value>
+                      </Param>
+                      <Param>
+                        <Name>Payment Source</Name>
+                        <Value>Account</Value>
+                      </Param>
+                      <Param>
+                        <Name>Old Bundle ID</Name>
+                        <Value>$3</Value>
+                      </Param>
+                      <Param>
+                        <Name>Start Date</Name>
+                        <Value>$4</Value>
+                      </Param>
+                      <Param>
+                        <Name>Start Time</Name>
+                        <Value>$5</Value>
+                      </Param>
+                      <Param>
+                        <Name>End Date</Name>
+                        <Value>$6</Value>
+                      </Param>
+                      <Param>
+                        <Name>End Time</Name>
+                        <Value>$7</Value>
+                      </Param>
+                    </ParamList>
+                  </Task>
+                </TaskList>
+              </SubmitRequest>
+            </format>
+            <args>
+              <arg evaluator="xml" expression="$ctx:Timestamp"/>
+              <arg evaluator="xml" expression="$ctx:account_id"/>
+              <arg evaluator="xml" expression="$ctx:OldBundleID"/>
+              <arg evaluator="xml" expression="$ctx:OldStartDate"/>
+              <arg evaluator="xml" expression="$ctx:OldStartTime"/>
+              <arg evaluator="xml" expression="$ctx:OldEndDate"/>
+              <arg evaluator="xml" expression="$ctx:OldEndTime"/>
+            </args>
+          </payloadFactory>
+          <property name="Step" scope="default" type="STRING" value="4"/>
+          <property name="Nei" scope="default" type="STRING" value="SurePay"/>
+          <property name="Api" scope="default" type="STRING" value="SubscribeBundle-md"/>
+          <property name="Action" scope="default" type="STRING" value="Request"/>
+          <sequence key="Tools_LogFormatterSeq"/>
+          <sequence key="NE_SurePayHandlerSeq"/>
+          <property description="Result"
+            expression="//p:TaskResponse/p:Result/text()" name="Result"
+            scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+          <property description="Name"
+            expression="//p:TaskResponse/p:Name/text()" name="Name"
+            scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+          <property description="ErrorCode"
+            expression="//p:ErrorInfo/p:ErrorCode/text()"
+            name="ErrorCode" scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+          <property description="ErrorMsg"
+            expression="//p:ErrorInfo/p:ErrorMsg/text()" name="ErrorMsg"
+            scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+          <filter regex="SUCCESS" source="get-property('Result')">
+            <then/>
+            <else>
+              <property name="code" scope="default" type="STRING" value="005"/>
+              <sequence key="gov:VASApp/XG/sequences/XG_GetNotificationSeq.xml"/>
+              <property description="Result" name="Result"
+                scope="default" type="STRING" value="fail"/>
+              <property name="Step" scope="default" type="STRING" value="4"/>
+              <property name="Nei" scope="default" type="STRING" value="SurePay"/>
+              <property name="Api" scope="default" type="STRING" value="SubscribeBundle-md"/>
+              <property name="Action" scope="default" type="STRING" value="Response"/>
+              <sequence key="Tools_LogFormatterSeq"/>
+              <sequence key="gov:VASApp/XG/sequences/XG_RespondSeq.xml"/>
+            </else>
+          </filter>
+          <property name="Step" scope="default" type="STRING" value="4"/>
+          <property name="Nei" scope="default" type="STRING" value="SurePay"/>
+          <property name="Api" scope="default" type="STRING" value="SubscribeBundle-md"/>
+          <property name="Action" scope="default" type="STRING" value="Response"/>
+          <sequence key="Tools_LogFormatterSeq"/>
+        </else>
+      </filter>
+    </then>
+    <else/>
+  </filter>
+  <payloadFactory media-type="xml">
+    <format>
+      <SubmitRequest xmlns="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0">
+        <SessionInfo>
+          <sessionId>1</sessionId>
+        </SessionInfo>
+        <RequestInfo>
+          <ReqID>$1</ReqID>
+        </RequestInfo>
+        <NERoutingInfo>
+          <NeName/>
+          <NeGroupName/>
+          <DistributionKey/>
+        </NERoutingInfo>
+        <TaskList>
+          <Task>
+            <Name>Subscribe Bundle</Name>
+            <ParamList>
+              <Param>
+                <Name>Account ID</Name>
+                <Value>$2</Value>
+              </Param>
+              <Param>
+                <Name>Bundle ID</Name>
+                <Value>$3</Value>
+              </Param>
+              <Param>
+                <Name>Account Type</Name>
+                <Value>Subscriber</Value>
+              </Param>
+              <Param>
+                <Name>Transaction ID</Name>
+                <Value>$4</Value>
+              </Param>
+            </ParamList>
+          </Task>
+        </TaskList>
+      </SubmitRequest>
+    </format>
+    <args>
+      <arg evaluator="xml" expression="$ctx:Timestamp"/>
+      <arg evaluator="xml" expression="$ctx:account_id"/>
+      <arg evaluator="xml" expression="$ctx:Bundle_ID"/>
+      <arg evaluator="xml" expression="$ctx:TransactionID"/>
+    </args>
+  </payloadFactory>
+  <property name="Step" scope="default" type="STRING" value="5"/>
+  <property name="Nei" scope="default" type="STRING" value="SurePay"/>
+  <property name="Api" scope="default" type="STRING" value="SubscribeBundle"/>
+  <property name="Action" scope="default" type="STRING" value="Request"/>
+  <sequence key="Tools_LogFormatterSeq"/>
+  <sequence key="NE_SurePayHandlerSeq"/>
+  <property description="Result"
+    expression="//p:TaskResponse/p:Result/text()" name="Result"
+    scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <property description="Name"
+    expression="//p:TaskResponse/p:Name/text()" name="Name"
+    scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <property description="ErrorCode"
+    expression="//p:ErrorInfo/p:ErrorCode/text()" name="ErrorCode"
+    scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <property description="ErrorMsg"
+    expression="//p:ErrorInfo/p:ErrorMsg/text()" name="ErrorMsg"
+    scope="default" type="STRING" xmlns:p="http://alcatel-lucent.com/esm/ws/svcmgr/V2_0"/>
+  <filter regex="SUCCESS" source="get-property('Result')">
+    <then/>
+    <else>
+      <property name="code" scope="default" type="STRING" value="005"/>
+      <sequence key="gov:VASApp/XG/sequences/XG_GetNotificationSeq.xml"/>
+      <property description="ActionResult" name="ActionResult"
+        scope="default" type="STRING" value="fail"/>
+      <property name="Step" scope="default" type="STRING" value="5"/>
+      <property name="Nei" scope="default" type="STRING" value="SurePay"/>
+      <property name="Api" scope="default" type="STRING" value="SubscribeBundle"/>
+      <property name="Action" scope="default" type="STRING" value="Response"/>
+      <sequence key="Tools_LogFormatterSeq"/>
+      <sequence key="gov:VASApp/Xchange/sequences/Xchange_RespondSeq.xml"/>
+    </else>
+  </filter>
+  <property expression="get-property('SYSTEM_DATE', 'dd/MM/yyyy')"
+    name="date_time" scope="default" type="STRING"/>
+  <property description="add_date_number"
+    expression="get-property('Bundle_Validity')" name="add_date_number"
+    scope="default" type="STRING"/>
+  <property description="formate_date" name="formate_date"
+    scope="default" type="STRING" value="dd/MM/yyyy"/>
+  <sequence key="Tools_OperationDateSeq"/>
+  <property name="code" scope="default" type="STRING" value="007"/>
+  <sequence key="gov:VASApp/XG/sequences/XG_GetNotificationSeq.xml"/>
+  <property expression="replace($ctx:message,'%validity%',$ctx:myDate)"
+    name="message" scope="default" type="STRING"/>
+  <property description="ActionResult" name="ActionResult"
+    scope="default" type="STRING" value="success"/>
+  <property name="Step" scope="default" type="STRING" value="5"/>
+  <property name="Nei" scope="default" type="STRING" value="SurePay"/>
+  <property name="Api" scope="default" type="STRING" value="SubscribeBundle"/>
+  <property name="Action" scope="default" type="STRING" value="Response"/>
+  <sequence key="Tools_LogFormatterSeq"/>
+  <property name="code" scope="default" type="STRING" value="0000"/>
+  <clone>
+    <target>
+      <sequence>
+        <sequence key="gov:VASApp/XG/sequences/XG_MigrationPlanSeq.xml"/>
+      </sequence>
+    </target>
+    <target>
+      <sequence>
+        <sequence key="gov:VASApp/XG/sequences/XG_RespondSeq.xml"/>
+      </sequence>
+    </target>
+  </clone>
+</sequence>
